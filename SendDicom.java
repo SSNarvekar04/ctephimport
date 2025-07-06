@@ -1,0 +1,1629 @@
+package com.rsv.rsvimport;
+
+import com.rsv.rsvimport.dcm2dcm.Dcm2Dcm;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Properties;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
+import org.xml.sax.InputSource;
+
+import com.sun.org.apache.xerces.internal.parsers.DOMParser;
+import java.io.BufferedReader;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import me.tongfei.progressbar.ProgressBar;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.dcm4che3.data.Attributes;
+import org.dcm4che3.data.ElementDictionary;
+import org.dcm4che3.data.Tag;
+import org.dcm4che3.data.VR;
+import org.dcm4che3.io.DicomInputStream;
+import org.dcm4che3.io.DicomOutputStream;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+public class SendDicom {
+
+    private static final Log logger = LogFactory.getLog(SendDicom.class);
+
+    private String urlstring = null;
+    private static String icpTicket = null;
+    static String jdbcUrl = "jdbc:postgresql://localhost:5432/endo";
+    static String username = "postgres";
+    static String password = "123456";
+    static String FILE_DETAILS_QUERY = "select * from manifest where studyinstanceuid=? and seriesinstanceuid=?";
+    static String UPDATE_STATUS_QUERY = "UPDATE mapped_result_table SET status='true' WHERE row_number=?";
+    static String RESULTQUERY = "SELECT * from mapped_result";
+    static boolean modifydcm=true;
+    private ArrayList<String> tagsToModify =null;
+    private static final String VISIT_DETAILS_QUERY = "SELECT distinct clinicaltrialsponsorname, clinicaltrialprotocolid,clinicaltrialprotocolname, clinicaltrialsiteid, clinicaltrialsubjectid, ClinicalTrialTimePointDescription, STRING_AGG(DISTINCT modality, ',') modality, STRING_AGG(DISTINCT studydate, ',') studydate FROM manifest WHERE clinicaltrialsiteid = ? AND clinicaltrialsubjectid = ? AND ClinicalTrialTimePointDescription = ? GROUP BY clinicaltrialsponsorname, clinicaltrialprotocolid, clinicaltrialprotocolname, clinicaltrialsiteid, clinicaltrialsubjectid, ClinicalTrialTimePointDescription";
+    private static final String SERIES_DETAILS_QUERY = "SELECT distinct studydescription,studydate,studyinstanceuid,seriesinstanceuid,seriesdescription,seriesnumber,count(sopinstanceuid) as count FROM manifest WHERE clinicaltrialsiteid = ? AND clinicaltrialsubjectid = ? AND ClinicalTrialTimePointDescription = ? GROUP BY studydescription,studydate,studyinstanceuid,seriesinstanceuid,seriesdescription,seriesnumber";
+
+    static {
+        disableSslVerification();
+        System.setProperty("java.awt.headless", "true");
+
+    }
+
+    private static void disableSslVerification() {
+        try {
+            // Create a trust manager that does not validate certificate chains
+            TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+
+                public void checkClientTrusted(X509Certificate[] certs,
+                        String authType) {
+                }
+
+                public void checkServerTrusted(X509Certificate[] certs,
+                        String authType) {
+                }
+            }};
+
+            // Install the all-trusting trust manager
+            SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection
+                    .setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+            // Create all-trusting host name verifier
+            HostnameVerifier allHostsValid = new HostnameVerifier() {
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            };
+
+            // Install the all-trusting host verifier
+            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (KeyManagementException e) {
+            e.printStackTrace();
+        }
+    }
+public static Map<Integer,String> getTagToCol(){
+	       
+	       Map<Integer, String> tagsmap=new HashMap<Integer,String>();
+	       Field[] fields = Tags.class.getFields();
+	      
+	       try {
+	           for (int i = 0; i < fields.length; i++) {
+	           Field field = fields[i];
+	           if(Modifier.isStatic(field.getModifiers())  && field.getType()==int.class &&Modifier.isFinal(field.getModifiers()))
+	        	//   System.out.println((Integer)field.get(null)+"    "+field.getName());
+	           tagsmap.put((Integer)field.get(null),field.getName());
+	            
+	       }
+	       } catch (Exception e) {
+	           }
+	       
+	       return tagsmap;
+	   }
+    public List<Map<String, String>> findFiles(String studyuid, String seriesUID, List<File> onlyfiles, Properties parentProperties) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        List<Map<String, String>> entries = new ArrayList<Map<String, String>>();
+        try {
+            // Step 1 - Load driver
+            // Class.forName("org.postgresql.Driver"); // Class.forName() is not needed since JDBC 4.0
+
+            // Step 2 - Open connection
+            conn = DriverManager.getConnection(jdbcUrl, username, password);
+
+            // Step 3 - Execute statement
+            stmt = conn.prepareStatement(FILE_DETAILS_QUERY);
+            stmt.setString(1, studyuid);
+            stmt.setString(2, seriesUID);
+            rs = stmt.executeQuery();
+
+            ResultSetMetaData rsmetadata = rs.getMetaData();
+            int count = rsmetadata.getColumnCount();
+
+            while (rs.next()) {
+                //Copy Template parent properties 
+                Map<String, String> entry = new HashMap<String, String>();
+                for (Object prop : parentProperties.keySet()) {
+                    entry.put((String) prop, parentProperties.getProperty((String) prop));
+                }
+
+                for (int i = 1; i <= count; i++) {
+                    String colname = rsmetadata.getColumnName(i);
+                    if (colname.equalsIgnoreCase("path")) {
+                        onlyfiles.add(new File(rs.getString(colname)));
+                    } else if (colname.equalsIgnoreCase("size")) {
+                        //entry.setSize(rs.getString(colname));
+                    } else {
+
+                        String value = rs.getString(colname);
+                               value = StringEscapeUtils.escapeJava(value);
+
+                        if (value == null) {
+                            value = "";
+                        }
+                      
+                        entry.put(colname.toUpperCase(), value);
+                    }
+                }
+                entries.add(entry);
+            }
+            // Step 4 - Get result
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+
+                // Step 5 Close connection
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return entries;
+    }
+    /**
+     * this method is used to find all Dicom files and return as list
+     */
+    public void findFiles(final File folder, List<File> onlyfiles) {
+        logger.debug(folder);
+        File[] files = folder.listFiles();
+
+                if(files!=null){
+
+            for (int i = 0; i < files.length; i++) {
+                final File fileentry = files[i];
+                if (fileentry.isDirectory()) {
+                    findFiles(fileentry, onlyfiles);
+                } else {
+
+                    boolean dcmFlag = false;
+                    String file_name = fileentry.getName();
+                    if (file_name.lastIndexOf(".") == -1) {
+                        dcmFlag = DicomFileUtilities
+                                .isDicomOrAcrNemaFile(fileentry);
+                    } else {
+                        String cfileExtension = file_name.substring(file_name
+                                .lastIndexOf(".") + 1);
+                        if (cfileExtension.equalsIgnoreCase("d")
+                                || cfileExtension.equalsIgnoreCase("dc")
+                                || cfileExtension.equalsIgnoreCase("dcm")) {
+                            dcmFlag = true;
+                        }
+
+                    }
+                    // if dcmFlag true means it Dicom file then only we add this one
+                    // into Dicom files list.
+                    if (dcmFlag) {
+                        onlyfiles.add(fileentry);
+                    }
+                }
+            }
+        }
+
+        // logger.debug(onlyfiles.size());
+        // logger.debug(files.length);
+        //return onlyfiles;
+    }
+
+    public static String getIcpTicket(Arguments arg) {
+        String port = "";
+        if (!arg.getServerport().equals("")) {
+            port = ":" + arg.getServerport();
+        }
+        String ticketurlString = arg.getProtocol() + arg.getServerip() + port
+                + "/alfresco/service/api/login?" + "lang=en-us&pw="
+                + arg.getPasswd() + "&u=" + arg.getUsername();
+        logger.debug("URL is :: " + ticketurlString);
+        URL url;
+        try {
+            url = new URL(ticketurlString);
+
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoInput(true);
+            conn.setConnectTimeout(5000);
+            // conn.setRequestMethod("POST");
+            conn.connect();
+
+            int responsecode = conn.getResponseCode();
+            String responsemesg = conn.getResponseMessage();
+
+            logger.debug("ResponseCode :: " + responsecode
+                    + "ResponseMesg :: " + responsemesg);
+
+            if (responsecode == -1) {
+                return null;
+            }
+            if (responsecode == 403) {
+                return null;
+            }
+            if (responsecode == 401) {
+                return null;
+            }
+            if (responsecode != 200) {
+                return null;
+            }
+            // Read the response
+            DOMParser parser = new DOMParser();
+            InputStream in = conn.getInputStream();
+            InputSource source = new InputSource(in);
+            parser.parse(source);
+            in.close();
+            conn.disconnect();
+
+            Document doc = parser.getDocument();
+            NodeList ticketnode = doc.getElementsByTagName("ticket");
+            Node datum = ticketnode.item(0);
+            Text result = (Text) datum.getFirstChild();
+
+            icpTicket = result.getWholeText();
+            // logger.debug("TICKET: " + this.icpTicket);
+        } catch (java.net.SocketTimeoutException e) {
+            logger.debug("Connecton Timeout");
+
+        } catch (IOException e) {
+            logger.debug("Unable to Connect the Server");
+        } catch (Exception e) {
+            logger.debug("Unable to read data from the Server");
+        }
+
+        return icpTicket;
+    }
+
+    private void dicomsend(String file) {
+
+        File globalfile = null;
+        File dicomfile = null;
+        try {
+            dicomfile = File.createTempFile("temp", ".dcm");
+
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        try {
+
+            StringBuilder headerStr = new StringBuilder();
+            StringBuilder icpFileName = new StringBuilder();
+            InputStream propertiesFileInputStream = null;
+            String filename = "";
+            icpFileName.append(System.currentTimeMillis() + "_");
+            headerStr.append("HEADER:aml");
+            icpFileName.append(headerStr.toString().getBytes().length + "_");
+
+            File fl = new File(file);
+            if (!fl.exists()) {
+                logger.debug(fl.getAbsolutePath() + " does not exists");
+            }
+
+            filename = fl.getName();
+            String contentType = "application/x-mirc-dicom";
+            InputStream in = new FileInputStream(fl);
+            OutputStream out = new FileOutputStream(dicomfile);
+            byte[] filecontent = new byte[1024];
+            int length;
+            while ((length = in.read(filecontent)) > 0) {
+                out.write(filecontent, 0, length);
+            }
+            in.close();
+            out.close();
+            String propFileName = "/home/chaitu/Desktop/test.properties";
+            InputStream inputStream = new FileInputStream(new File(
+                    propFileName));
+
+            Properties prop = new Properties();
+            prop.load(inputStream);
+            String value = "";
+            Enumeration<?> e = prop.propertyNames();
+            while (e.hasMoreElements()) {
+                String key = (String) e.nextElement();
+                value += key + "=" + prop.getProperty(key) + "\n";
+            }
+
+            /*StringWriter writer = new StringWriter();
+             prop.list(new PrintWriter(writer));
+             String value=writer.getBuffer().toString().replace("-- listing properties --\n", "");*/
+            //logger.debug(value);
+            propertiesFileInputStream = new ByteArrayInputStream(value.getBytes());
+            icpFileName.append(propertiesFileInputStream.available() + "_0_");
+
+            //	propertiesFileInputStream = new BufferedInputStream(inputStream);
+            //     icpFileName.append(propertiesFileInputStream.available() + "_");
+            if (filename.endsWith(".dcm")) {
+                icpFileName.append(filename);
+            } else {
+                icpFileName.append(filename + ".dcm");
+
+            }
+            //logger.debug(icpFileName + "       =================================================");
+
+            globalfile = new File("/tmp/" + icpFileName);
+            FileOutputStream fop = new FileOutputStream(globalfile);
+
+            fop.write(headerStr.toString().getBytes());
+            //logger.debug("-----------------------\n" + propertiesFileInputStream.toString());
+            //fop.write(propertiesFileInputStream);
+            copyStream(propertiesFileInputStream, fop);
+            InputStream is = new FileInputStream(dicomfile);
+            byte[] filecontent1 = new byte[1024];
+            int length1;
+            while ((length1 = is.read(filecontent1)) > 0) {
+                fop.write(filecontent1, 0, length1);
+            }
+            propertiesFileInputStream.close();
+            is.close();
+            fop.flush();
+            fop.close();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+    }
+
+    public void copyStream(InputStream input, OutputStream output)
+            throws IOException {
+        byte[] buffer = new byte[1024]; // Adjust if you want
+        int bytesRead;
+        while ((bytesRead = input.read(buffer)) != -1) {
+            output.write(buffer, 0, bytesRead);
+        }
+    }
+
+    protected int sendFile(String file, Properties prop) throws IOException {
+        int attempts = 0;
+        int responseCode = 0;
+
+        /* File dicomfile = null;
+         try {
+         dicomfile = File.createTempFile("temp", ".dcm");
+
+         } catch (IOException e) {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+         }*/
+        Arguments args = Arguments.getInstance();
+
+        StringBuffer urlbuffer = new StringBuffer(args.getProtocol());
+        urlbuffer.append(args.getServerip() + ":" + args.getServerport());
+        urlbuffer.append("/alfresco/misFileUpload");
+        urlbuffer.append("?ticket="
+                + getIcpTicket(args));
+
+        urlbuffer.append("&AET="
+                + URLEncoder.encode(args.getTrialname(), "UTF-8"));
+        urlbuffer.append("&AETID="
+                + URLEncoder.encode(args.getTrialid(), "UTF-8"));
+        urlbuffer.append("&parent="
+                + URLEncoder.encode(args.getParent(), "UTF-8"));
+        urlstring = urlbuffer.toString();
+        //logger.debug(urlstring);
+
+        StringBuilder headerStr = new StringBuilder();
+        StringBuilder icpFileName = new StringBuilder();
+        InputStream propertiesFileInputStream = null;
+
+        // icpFileName.append(System.currentTimeMillis() + "_");
+        headerStr.append("HEADER:aml");
+        icpFileName.append(headerStr.toString().getBytes().length + "_");
+
+        File fl = new File(file);
+        if (!fl.exists()) {
+            logger.debug(fl.getAbsolutePath() + " does not exists");
+        }
+
+        // filename = fl.getName();
+        String contentType = "application/x-mirc-dicom";
+        /*InputStream in = new FileInputStream(fl);
+         OutputStream out = new FileOutputStream(dicomfile);
+         byte[] filecontent = new byte[1024];
+         int length;
+         while ((length = in.read(filecontent)) > 0) {
+         out.write(filecontent, 0, length);
+         }
+         in.close();
+         out.close();*/
+        //String propFileName = props;
+        // InputStream inputStream = new FileInputStream(new File(
+        //       propFileName));
+
+        //Properties prop = new Properties();
+        //prop.load(inputStream);
+        String value = "";
+        Enumeration<?> e = prop.propertyNames();
+        while (e.hasMoreElements()) {
+            String key = (String) e.nextElement();
+            value += key + "=" + prop.getProperty(key) + "\n";
+        }
+
+        String filename = prop.getProperty("SOPINSTANCEUID") + ".dcm";
+        /*StringWriter writer = new StringWriter();
+         prop.list(new PrintWriter(writer));
+         String value=writer.getBuffer().toString().replace("-- listing properties --\n", "");*/
+       // logger.debug(value);
+        propertiesFileInputStream = new ByteArrayInputStream(value.getBytes());
+        icpFileName.append(propertiesFileInputStream.available() + "_0_");
+
+        if (filename.endsWith(".d")) {
+            icpFileName.append(filename.substring(0, filename.length() - 2) + ".dcm");
+        }
+        if (filename.endsWith(".dc")) {
+            icpFileName.append(filename.substring(0, filename.length() - 3) + ".dcm");
+        } else if (filename.endsWith(".dcm")) {
+            icpFileName.append(filename);
+
+        } else {
+            icpFileName.append(filename + ".dcm");
+        }
+        logger.debug(icpFileName + "       =================================================");
+
+        HttpURLConnection connection = null;
+
+        URL serverAddress = null;
+        FileInputStream sendFileInputStream = null;
+
+        ZipOutputStream svros;
+        
+         
+// if we get bellow TRANSFERSYNTAXUID we will convert the images from compressed format to normal
+logger.debug("TRANSFERSYNTAXUID="+prop.getProperty("TRANSFERSYNTAXUID"));
+
+if ("1.2.840.10008.1.2.4.90".equals(prop.getProperty("TRANSFERSYNTAXUID")) || "1.2.840.10008.1.2.4.91".equals(prop.getProperty("TRANSFERSYNTAXUID"))) {
+            Dcm2Dcm dcm = new Dcm2Dcm();
+            String convertArguments[] = new String[2];
+            convertArguments[0] = fl.getCanonicalPath();
+            
+
+            File outconvertedfile = File.createTempFile("outconvertedfile", ".dcm");
+            outconvertedfile.deleteOnExit();
+            convertArguments[1] = outconvertedfile.getCanonicalPath();
+             logger.debug(fl.getCanonicalPath()+"==="+outconvertedfile.getCanonicalPath());
+            try {
+                //calling imgage convertion method of org.dcm4che2.tool.dcm2dcm.Dcm2Dcm class
+                dcm.main(convertArguments);
+            } catch (Exception ex) {
+                Logger.getLogger(SendDicom.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            fl = outconvertedfile;
+        }
+
+        try {
+            String uploadUrlString = null;
+
+            uploadUrlString = urlstring + "&FILENAME="
+                    + URLEncoder.encode(icpFileName.toString(), "UTF-8");
+            //	log.info("LogFileName: " + logfilename);
+            uploadUrlString = uploadUrlString + "&LOGFILENAME="
+                    + URLEncoder.encode("test.log", "UTF-8");
+
+            uploadUrlString = uploadUrlString + "&TOTALFILES="
+                    + URLEncoder.encode(Long.toString(1), "UTF-8");
+            logger.debug(uploadUrlString);
+
+            serverAddress = new URL(uploadUrlString);
+            connection = (HttpURLConnection) serverAddress.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setDoOutput(true);
+            connection.setDoInput(true);
+            connection.setReadTimeout(100000);
+            connection.setRequestProperty("Content-Type", contentType);
+            connection.setRequestProperty("Content-Disposition",
+                    "attachment; filename=\"" + filename + "\"");
+            //Instead of buffering entire data send it in chunks of specified mb. 
+            //This will work only with the server which supports http1.1 protocol
+            if (fl.length() > 1024 * 1024 * 10) {
+                connection.setChunkedStreamingMode(1024 * 1024 * 10);
+            } else if (fl.length() > 1024 * 1024 * 5) {
+                connection.setChunkedStreamingMode(1024 * 1024 * 5);
+            }
+            connection.connect();
+
+            svros = new ZipOutputStream(connection.getOutputStream());
+
+            // svros.putNextEntry(new ZipEntry(propertiesFileInputStream.
+            // available() + "_" +(amlfileinputstream==null?
+            // 0:amlfileinputstream.available())+"_"+ filename));
+            svros.putNextEntry(new ZipEntry(icpFileName.toString()));
+
+            // System.out.print("JPS::: File name is ::: "+propertiesFileInputStream.
+            // available() + "_" + filename);
+
+            /*
+             * get the output stream writer and write the output to the
+             * server
+             */
+            int n;
+            byte[] bbuf = new byte[1024 * 1024 * 8];
+            long total = 0;
+
+            // Writing Header String to output
+            svros.write(headerStr.toString().getBytes());
+
+            // writing properties file content to output
+            while ((n = propertiesFileInputStream
+                    .read(bbuf, 0, bbuf.length)) > 0) {
+                total = total + n;
+                if (total > 100 * 1024 * 1024) {
+                    logger.debug("Uploaded: " + (total / (1024 * 1024)) + " mb");
+                }
+                svros.write(bbuf, 0, n);
+            }
+
+            try {
+                if(args.isDcmmodify() && modifydcm && tagsToModify!=null && !tagsToModify.isEmpty()){
+                  // Create temp file and use this to modify and send 
+				File tempDicom = getAnonDicomFile(fl);
+				if(tempDicom != null && tempDicom.exists() && tempDicom.length()>0) {
+					fl = tempDicom;
+				}  				
+					// MODIFY DCM FILE
+						//returns status -1 if file is corrupted or EOFException
+						int status = modifyDcmFile(fl, svros, new ByteArrayInputStream(value.getBytes()), null,tagsToModify);
+						/*
+						 * if status is -1 we add file to pending list and
+						 * return send status as -2, if we return send status as
+						 * -1 it cancel the sending of remaining files.
+						 */
+						if (status == -1) {
+                                                    
+                                                  logger.debug("failed to modify dcm file: " +filename);
+
+							return -1;
+						}
+                    
+                    
+                }
+                else{
+                    
+                
+                sendFileInputStream = new FileInputStream(fl);
+                while ((n = sendFileInputStream.read(bbuf, 0, bbuf.length)) > 0) {
+                    svros.write(bbuf, 0, n);
+                    total = total + n;
+                    if (total > 100 * 1024 * 1024) {
+                        logger.debug("Uploaded: " + (total / (1024 * 1024)) + " mb");
+                    }
+                }
+              }
+            } 
+            catch (Exception ex) {
+                ex.printStackTrace();
+                return -1;
+            }finally {
+                if (sendFileInputStream != null) {
+                    sendFileInputStream.close();
+                }
+            }
+            svros.flush();
+            svros.close();
+            propertiesFileInputStream.close();
+
+            responseCode = connection.getResponseCode();
+            String responseMessage = connection.getResponseMessage();
+
+            if (responseCode == 200) {
+                logger.debug("Response Code: " + responseCode
+                        + " Response Message: " + responseMessage + " for sending " + icpFileName);
+
+            } else {
+                logger.debug("Response Code: " + responseCode
+                        + " Response Message: " + responseMessage + " for sending " + icpFileName);
+                if (responseCode == 404) {
+                    // Display Option dialog box so that the user can abort or
+                    // continue;
+                }
+
+                if (responseCode == 401) {
+                    //statusbar.setProgress(--progress);
+                    return sendFile(file, prop);
+                }
+
+                if (responseCode == 500) {
+                    logger.debug("failed to import");
+                }
+
+            }
+
+        } catch (SocketTimeoutException e1) {
+
+            if (attempts < 3) {
+                attempts++;
+                return sendFile(file, prop);
+            } else {
+                logger.error(e1.getMessage());
+            }
+
+        } catch (IOException e2) {
+            logger.debug("Unable to Connect the Server");
+        } catch (Exception e3) {
+            logger.debug("Unable to read data from the Server");
+        } finally {
+            // close the connection, set all objects to null
+            if (connection != null) {
+                connection.disconnect();
+            }
+
+            connection = null;
+        }
+
+        return responseCode;
+
+    }
+
+    public static List<CTEPHEntry> fetchResult(String configFile) throws FileNotFoundException, IOException {
+
+        
+        // where seriesinstanceuid='1.2.124.38368.30457449009418829285.73117176'"
+
+        if (configFile != null) {
+            Properties props = new Properties();
+            InputStream is = new FileInputStream(configFile);
+            props.load(is);
+            if (is != null) {
+                is.close();
+            }
+            String dburl = props.getProperty("db.url");
+            String dbuser = props.getProperty("db.username");
+            String dbpass = props.getProperty("db.password");
+            String query = props.getProperty("db.query");
+            String fileDetailsQuery = props.getProperty("file.details.query");
+            String updateStatusQuery = props.getProperty("update.status.query");
+            if (dburl != null) {
+                jdbcUrl = dburl;
+            }
+            if (dbuser != null) {
+                username = dbuser;
+            }
+            if (dbpass != null) {
+                password = dbpass;
+            }
+            if (query != null) {
+                RESULTQUERY = query;
+            }
+            if (fileDetailsQuery != null) {
+                FILE_DETAILS_QUERY = fileDetailsQuery;
+            }
+            if (updateStatusQuery != null) {
+                UPDATE_STATUS_QUERY = updateStatusQuery;
+            }
+        }
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        List<CTEPHEntry> entries = new ArrayList<CTEPHEntry>();
+        try {
+            // Step 1 - Load driver
+            // Class.forName("org.postgresql.Driver"); // Class.forName() is not needed since JDBC 4.0
+
+            // Step 2 - Open connection
+            conn = DriverManager.getConnection(jdbcUrl, username, password);
+
+            // Step 3 - Execute statement
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(RESULTQUERY);
+
+            ResultSetMetaData rsmetadata = rs.getMetaData();
+            int count = rsmetadata.getColumnCount();
+
+            while (rs.next()) {
+                CTEPHEntry entry = new CTEPHEntry();
+
+                for (int i = 1; i <= count; i++) {
+                    String colname = rsmetadata.getColumnName(i);
+                    if (colname.equalsIgnoreCase("path")) {
+                        entry.setPath(rs.getString(colname));
+                    } else if (colname.equalsIgnoreCase("size")) {
+                        entry.setSize(rs.getString(colname));
+                    } else {
+
+                        String value = rs.getString(colname);
+                        value = StringEscapeUtils.escapeJava(value);
+                        if (value == null) {
+                            value = "";
+                        }
+                        /*if(colname==null||value==null){
+                         System.out.println(colname+"==="+value);
+                         }*/
+                        entry.getProperties().put(colname.toUpperCase(), value);
+                    }
+                }
+                entries.add(entry);
+            }
+            // Step 4 - Get result
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+
+                // Step 5 Close connection
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return entries;
+
+    }
+// To get temp dcm file
+	private File getAnonDicomFile(File file) throws IOException {
+		File tempDicom = null;
+		
+			DicomOutputStream dos = null;
+			try {
+				final DicomInputStream in = new DicomInputStream(file);
+                                Attributes fmi=in.getFileMetaInformation();
+				Attributes dataset = in.readDataset(-1, -1);
+				in.close();
+
+				tempDicom = File.createTempFile("tempdcmFile",".dcm");
+                                tempDicom.deleteOnExit();
+				//FileOutputStream fos = new FileOutputStream(tempDicom);
+				//BufferedOutputStream bos = new BufferedOutputStream(fos);
+				dos = new DicomOutputStream(tempDicom);
+				dos.writeDataset(fmi,dataset);						
+			} 
+                        finally {
+				if(dos != null) {
+					dos.close();
+				}
+			}
+		
+		return tempDicom;
+	}
+
+    public int modifyDcmFile(File dcmFile, OutputStream svros, 
+			InputStream propertiesContent, String redactPath, List<String> tagstomodify) {
+        logger.debug("modify dcm :"+dcmFile.getName());
+		try{
+		final DicomInputStream in = new DicomInputStream(dcmFile);
+                Attributes fmi = in.getFileMetaInformation();
+                Attributes dataset=in.readDataset(-1, -1);
+		in.close();
+		final String cuid = fmi.getString(Tag.MediaStorageSOPClassUID);
+		final String iuid = fmi.getString(Tag.MediaStorageSOPInstanceUID);
+		String tsuid = fmi.getString(Tag.TransferSyntaxUID);
+		if (tsuid == null) {
+			tsuid = "1.2.840.10008.1.2";
+		}
+
+		
+		Properties prop = new Properties();
+		prop.load(propertiesContent);
+
+		for (Object key : prop.keySet()) {
+			// String tag = getDcmTag(key.toString());
+                     //   logger.debug(Arrays.toString(tagstomodify.toArray()));
+                        if(tagstomodify.contains(key.toString().toUpperCase())){
+                            
+             // logger.debug("modifing tag"+key.toString().toUpperCase());
+
+			String tag = null;
+			Map<Integer, String> tagToCol =getTagToCol();
+			for (Integer key1 : tagToCol.keySet()) {
+				if (tagToCol.get(key1).equalsIgnoreCase(key.toString())) {
+					tag = Tags.toString(key1);
+				}
+			}
+
+			if (tag != null) {
+				String value = prop.getProperty((String) key);
+				String str = dataset.getString(Tags.valueOf(tag));
+
+				if ((value != null && !value.equals(str))
+						|| (value != null && str == null)) {
+					VR vr = dataset.getVR(Tags.valueOf(tag));
+                                        if(vr==null)
+                                        {
+                                           vr= ElementDictionary.vrOf(Tags.valueOf(tag), null);
+                                        }
+					try {
+						dataset.setString(Tags.valueOf(tag), vr, value);
+
+					} catch (Exception e) {
+						logger.warn("failed to modify tag:"+tag);
+					}
+
+				}
+			}
+
+		}
+     		 }	
+	
+			DicomOutputStream dos = null;
+	
+			try {
+				dos = new DicomOutputStream(svros,tsuid);
+				//dos.writeFileMetaInformation(fmi);
+				dos.writeDataset(fmi,dataset);
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				if (dos != null) {
+					dos.close();
+				}
+			}
+		
+		}
+		catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			return -1;
+		}
+		return 1;
+		}
+	
+	
+    public void changeStatus(String configFile, String row_number) throws FileNotFoundException, IOException {
+
+        //  String jdbcUrl = "jdbc:postgresql://localehost:5434/cteph";
+        // String username = "postgres";
+        //String password = "123456";
+        // String resultquery = "UPDATE mapped_result_table SET status='true' WHERE row_number="+row_number;
+
+        /* if (configFile != null) {
+         Properties props = new Properties();
+         InputStream is = new FileInputStream(configFile);
+         props.load(is);
+         if (is != null) {
+         is.close();
+         }
+         String dburl = props.getProperty("db.url");
+         String dbuser = props.getProperty("db.username");
+         String dbpass = props.getProperty("db.password");
+         String query = props.getProperty("db.query");
+         if (dburl != null) {
+         jdbcUrl = dburl;
+         }
+         if (dbuser != null) {
+         username = dbuser;
+         }
+         if (dbpass != null) {
+         password = dbpass;
+         }
+            
+         }*/
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        int rs = 0;
+        List<CTEPHEntry> entries = new ArrayList<CTEPHEntry>();
+        try {
+            // Step 1 - Load driver
+            // Class.forName("org.postgresql.Driver"); // Class.forName() is not needed since JDBC 4.0
+
+            // Step 2 - Open connection
+            conn = DriverManager.getConnection(jdbcUrl, username, password);
+
+            // Step 3 - Execute statement
+            stmt = conn.prepareStatement(UPDATE_STATUS_QUERY);
+            stmt.setInt(1, Integer.parseInt(row_number));
+            // System.out.println(UPDATE_STATUS_QUERY);
+            rs = stmt.executeUpdate();
+
+            // Step 4 - Get result
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+
+                // Step 5 Close connection
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+    public ArrayList<String> getTagsToModifyFromConfig(String configFile)throws FileNotFoundException, IOException{
+        ArrayList<String> items =new ArrayList<String>();
+        //System.out.println("zbjkbckbzk"+configFile);
+         if (configFile != null) {
+            Properties props = new Properties();
+            InputStream is = new FileInputStream(configFile);
+            props.load(is);
+            if (is != null) {
+                is.close();
+            }
+            String tags = props.getProperty("tags-to-modify");
+           items = new ArrayList<String>(Arrays.asList(tags.split("\\s*,\\s*")));
+           items.replaceAll(String::toUpperCase);
+            
+
+         }
+   
+        
+        return items;
+    }
+    
+
+    public static void main(String[] args) throws IOException {
+        Arguments argobj = Arguments.getInstance();
+        argobj.parseArguments(args);
+        SendDicom dicom = new SendDicom();
+        dicom.tagsToModify=dicom.getTagsToModifyFromConfig(argobj.getConfigFile());
+        List<CTEPHEntry> results = fetchResult(argobj.getConfigFile());
+        //Prepare DTF Entries
+        List<DTFEntry> dtfEntries = fetchDTFEntries();
+        long startimebg = System.currentTimeMillis();
+        long total = 0;
+        boolean allFileUploaded = true;
+        for (CTEPHEntry entry : results) {
+            List<File> onlydicomfiles = new ArrayList<File>();
+            Properties props = entry.getProperties();
+            List<Map<String, String>> instanceProperties = dicom.findFiles(props.getProperty("STUDYINSTANCEUID"), props.getProperty("SERIESINSTANCEUID"), onlydicomfiles, props);
+
+            long startime = System.currentTimeMillis();
+            logger.debug("StdUID:" + props.getProperty("STUDYINSTANCEUID") + " -- Start time:" + startime + " -- Files:" + onlydicomfiles.size());
+            // for (int i = 0; i < onlydicomfiles.size(); i++) {
+
+            boolean status = true;
+
+            int index = 0;
+
+            for (File fl : ProgressBar.wrap(onlydicomfiles, props.getProperty("STUDYINSTANCEUID"))) {
+
+                String path = fl.getCanonicalPath();
+
+                Properties insProps = new Properties();
+
+                insProps.putAll(instanceProperties.get(index));
+
+                try {
+                    dicom.sendFile(path, insProps);
+                    //dicom.dicomsend("/home/chaitu/Desktop/AAA/1.3.12.2.1107.5.1.4.64149.30000013122700150110900002348.dcm");
+                } catch (Exception e) {
+                    status = false;
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                index++;
+                // logger.debug("Uploading... "+path);
+
+            }
+
+            if (status && onlydicomfiles.size() > 0) {
+
+                dicom.changeStatus(argobj.getConfigFile(), props.getProperty("ROW_NUMBER"));
+
+            }
+            if (!status) {
+                allFileUploaded = false;
+            }
+
+
+            /*ExecutorService executor1 = Executors.newFixedThreadPool(argobj.getThreads());
+
+             for (File fl : ProgressBar.wrap(onlydicomfiles, props.getProperty("STUDYINSTANCEUID"))) {
+             String path = fl.getCanonicalPath();
+
+             executor1.execute(new Runnable() {
+
+             @Override
+             public void run() {
+             try {
+             dicom.sendFile(path, props);
+             //dicom.dicomsend("/home/chaitu/Desktop/AAA/1.3.12.2.1107.5.1.4.64149.30000013122700150110900002348.dcm");
+             } catch (Exception e) {
+             // TODO Auto-generated catch block
+             e.printStackTrace();
+             }
+             }
+
+             });
+             // logger.debug("Uploading... "+path);
+
+             }
+            
+             executor1.shutdown();
+             // Wait until all threads are finish
+             while (!executor1.isTerminated());*/
+            total += onlydicomfiles.size();
+            long endtime = System.currentTimeMillis();
+            String timeelapsed = "StdUID:" + props.getProperty("STUDYINSTANCEUID") + " -- time taken :"
+                    + onlydicomfiles.size() + "files in "
+                    + ((endtime - startime) / (1000)) + "sec -- " + endtime;
+            System.out.println(timeelapsed);
+            logger.debug(timeelapsed);
+
+        }
+        long endtimebg = System.currentTimeMillis();
+        String timeelapse = " time taken for all entries :"
+                + total + "files in "
+                + ((endtimebg - startimebg) / (1000)) + "sec ";
+        System.out.println(timeelapse);
+
+        if (allFileUploaded) {
+            sendDTFForBatch(dtfEntries);
+        } else {
+            logger.error("Upload Failed for Some/all files. Not Sending DTF. Details follows ");
+            dtfEntries.stream()
+                    .map(dtfe -> "Site:" + dtfe.getSite() + ",Subject:" + dtfe.getSubject() + ",Visit:" + dtfe.getVisit())
+                    .forEach(System.err::println);
+        }
+        logger.debug(timeelapse);
+    }
+    public static List<String> getVisitDetails(String clinicaltrialsiteid, String clinicaltrialsubjectid, String clinicaltrialtimepointid) throws SQLException {
+        List<String> visitDetailsList = new ArrayList<>();
+        Connection connection = null;
+        ResultSet rs = null;
+        ResultSet rs1 = null;
+        PreparedStatement stmt = null;
+        PreparedStatement stmt1 = null;
+        try {
+            connection =DriverManager.getConnection(jdbcUrl, username, password);
+            stmt = connection.prepareStatement(VISIT_DETAILS_QUERY);
+            stmt.setString(1, clinicaltrialsiteid);
+            stmt.setString(2, clinicaltrialsubjectid);
+            stmt.setString(3, clinicaltrialtimepointid);
+
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                JSONObject visitDetailsJson = new JSONObject();
+                visitDetailsJson.put("ClinicalTrialSponsorName", rs.getString("clinicaltrialsponsorname"));
+                visitDetailsJson.put("ClinicalTrialProtocolID", rs.getString("clinicaltrialprotocolid"));
+                visitDetailsJson.put("ClinicalTrialProtocolName", rs.getString("clinicaltrialprotocolname"));
+                visitDetailsJson.put("ClinicalTrialSiteID", rs.getString("clinicaltrialsiteid"));
+                visitDetailsJson.put("ClinicalTrialSubjectID", rs.getString("clinicaltrialsubjectid"));
+                visitDetailsJson.put("ClinicalTrialTimePointDescription", rs.getString("ClinicalTrialTimePointDescription"));
+                visitDetailsJson.put("Modality", rs.getString("modality"));
+                visitDetailsJson.put("ScanDates", rs.getString("studydate"));
+                
+                visitDetailsJson.put("firstname", Arguments.getInstance().getUsername());
+                visitDetailsJson.put("lastname", Arguments.getInstance().getUsername());
+                visitDetailsJson.put("dtfcreatedby", Arguments.getInstance().getUsername());
+                visitDetailsJson.put("trialid",Arguments.getInstance().getTrialid());
+                visitDetailsJson.put("submissiondate", new Date().toString());
+
+                stmt1 = connection.prepareStatement(SERIES_DETAILS_QUERY);
+                stmt1.setString(1, clinicaltrialsiteid);
+                stmt1.setString(2, clinicaltrialsubjectid);
+                stmt1.setString(3, clinicaltrialtimepointid);
+
+                rs1 = stmt1.executeQuery();
+                JSONArray seriesArray = new JSONArray();
+                while (rs1.next()) {
+                    JSONObject seriesDetailsJson = new JSONObject();
+                    seriesDetailsJson.put("StudyDescription", rs1.getString("studydescription"));
+                    seriesDetailsJson.put("StudyDate", rs1.getString("studydate"));
+                    seriesDetailsJson.put("StudyInstanceUID", rs1.getString("studyinstanceuid"));
+                    seriesDetailsJson.put("SeriesInstanceUID", rs1.getString("seriesinstanceuid"));
+                    seriesDetailsJson.put("SeriesDescription", rs1.getString("seriesdescription"));
+                    seriesDetailsJson.put("SeriesNumber", rs1.getInt("seriesnumber"));
+                    seriesDetailsJson.put("count", rs1.getInt("count"));
+                    seriesArray.put(seriesDetailsJson);
+
+                }
+                visitDetailsJson.put("series", seriesArray);
+                String path=clinicaltrialsubjectid+"_"+clinicaltrialtimepointid+"("+timestampToDateTime(System.currentTimeMillis())+").json";
+                System.out.println(visitDetailsJson.toString()+"=========================");
+                
+                try {
+                    createFile(path, visitDetailsJson.toString());
+                    
+                    if (uploadDTF(path)) {
+                        deleteFile(path);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                visitDetailsList.add(visitDetailsJson.toString());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) {
+
+                    rs.close();
+
+                }
+                if (rs1 != null) {
+
+                    rs1.close();
+
+                }
+                if (stmt != null) {
+
+                    stmt.close();
+
+                }
+                if (stmt1 != null) {
+
+                    stmt1.close();
+
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(SendDicom.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return visitDetailsList;
+    }
+    
+    private static String timestampToDateTime(Long timeInMilliseconds) {
+        DateFormat df = new SimpleDateFormat("yyyy-MMM-dd-HH-mm-ss z");
+        String datetime = df.format(new Date(timeInMilliseconds));
+        return datetime;
+    }
+     
+         // Method to create a file
+    private static void createFile(String fileName,String jsonData) throws IOException {
+        File file = new File(fileName);
+        if (file.createNewFile()) {
+            System.out.println("File created: " + file.getName());
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                fos.write(jsonData.getBytes());
+            }
+        } else {
+            System.out.println("File already exists.");
+        }
+    }
+   // Method to delete the file after successful upload
+    public static void deleteFile(String fileName) throws IOException {
+        Files.delete(Paths.get(fileName));
+        System.out.println("File deleted after successful upload.");
+    }  
+    
+    private static Boolean uploadDTF(String path) throws IOException{
+        logger.debug("SendDTF#uploadDTF................");
+        logger.debug("path: " + path);
+        Arguments args = Arguments.getInstance();
+        StringBuffer urlbuffer = new StringBuffer(args.getProtocol());
+        urlbuffer.append(args.getServerip() + ":" + args.getServerport());
+        urlbuffer.append("/alfresco/wcs/mis/uploadNew.json");
+        
+              // Replace with the path to your file
+        File file = new File(path);
+        if (!file.exists()) {
+            logger.error(path+" File does not exist.");
+            return false;
+        }
+             logger.debug("Upload String is " + urlbuffer.toString());
+
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        httpClient = HttpClients.custom()
+                .setRedirectStrategy(new org.apache.http.impl.client.LaxRedirectStrategy())
+                .build();
+        HttpPost httpPost = new HttpPost(urlbuffer.toString());
+ 
+        // Set content type to multipart/form-data
+       // httpPost.setHeader("Content-Type", "multipart/form-data");
+ 
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+        builder.addBinaryBody("file", file);
+ 
+        // Add additional text fields
+        
+        builder.addTextBody("ticket", getIcpTicket(args));
+        builder.addTextBody("nodeid", args.getTrialid());
+        builder.addTextBody("name", path);
+        builder.addTextBody("title", "cmdimportDTF");
+        builder.addTextBody("desc", "cmdimportDTF");
+        builder.addTextBody("mimetype","application/json");
+        builder.addTextBody("destination", "ManualDTF/Pending");
+        //builder.addTextBody("destination", "ManualDTF"+ File.separator +"Pending");
+        //builder.addTextBody("destination", "TestDTF/Pending");
+
+        
+              logger.debug("Upload String is " + builder.toString());
+
+        // You can add more fields as needed
+ 
+        HttpEntity entity = builder.build();
+        httpPost.setEntity(entity);
+ 
+        CloseableHttpResponse response = httpClient.execute(httpPost);
+ 
+        // Handle response here
+        System.out.println("Status code: " + response.getStatusLine().getStatusCode());
+        
+        int responseCode = response.getStatusLine().getStatusCode();
+                    logger.info("RESPONSE MESSAGE: "+ response.getStatusLine().getReasonPhrase());
+
+        if (responseCode == 200) {
+            //   logger.info(responseMessage);
+            logger.info("DTF is sent successfully");
+            return true;
+        } else {
+            if (responseCode == 401) {
+                 // uploadDTF(path, properties);
+                
+            }
+        }
+ 
+        response.close();
+        httpClient.close();
+
+        return false;
+    }
+    
+    
+     private static Boolean uploadDTF1(String path) throws UnsupportedEncodingException, IOException {
+        logger.debug("SendDTF#uploadDTF................");
+        logger.debug("path: " + path);
+//        if(true) throw new ImportToolWebRuntimeException("Failed to upload tempDTF!");
+        Arguments args = Arguments.getInstance();
+        StringBuffer urlbuffer = new StringBuffer(args.getProtocol());
+        urlbuffer.append(args.getServerip() + ":" + args.getServerport());
+        urlbuffer.append("/alfresco/misFileUpload?ticket="+ getIcpTicket(args));
+        urlbuffer.append("&AETID=" + URLEncoder.encode(args.getTrialid(), "UTF-8"));
+        urlbuffer.append("&AET=" + URLEncoder.encode(args.getTrialname(), "UTF-8"));
+        urlbuffer.append("&parent=" + URLEncoder.encode(args.getParent(), "UTF-8"));
+        urlbuffer.append("&followFolderStructure=false");
+        //urlbuffer.append("&PROPERTIES=");
+       // urlbuffer.append("&SEPARATOR=" + URLEncoder.encode("\\$,\\$", "UTF-8"));
+        String urlstring = urlbuffer.toString();
+        File file = new File(path);
+        if (!file.exists()) {
+            logger.error(path+" File does not exist.");
+            return false;
+        }
+        String filename = file.getName();
+        logger.debug("file name is :: " + path);
+        String contentType = "application/json";
+        HttpURLConnection connection =null;
+        try(FileInputStream dtfFileInputStream = new FileInputStream(file)) {
+            String uploadUrlString = null;
+            StringBuilder pathInICP = new StringBuilder("ManualDTF"+ File.separator +"Pending");
+            /*
+             * if path contains tempDTF then it stores temp/DTF folder other
+             * wise store in DTF folder
+             */
+            uploadUrlString = urlstring + "&FILEPATH=" + URLEncoder.encode(pathInICP.toString(), "UTF-8");
+            uploadUrlString = uploadUrlString + "&FILENAME=" + URLEncoder.encode(filename, "UTF-8");
+            // connection.setRequestProperty("FILENAME", URLEncoder.encode(propertiesFileInputStream.available() + "_" + filename, "UTF-8"));
+            logger.debug("Upload String is " + uploadUrlString);
+            URL serverAddress = new URL(urlbuffer.toString());
+            connection = (HttpURLConnection) serverAddress.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.setDoInput(true);
+            connection.setReadTimeout(100000);
+            connection.setRequestProperty("Content-Type", contentType);
+            connection.connect();
+            ZipOutputStream svros = new ZipOutputStream(connection.getOutputStream());
+
+            svros.putNextEntry(new ZipEntry(filename));
+            //get the output stream writer and write the output to the server
+
+            int n;
+            byte[] bbuf = new byte[1024];
+            while ((n = dtfFileInputStream.read(bbuf, 0, bbuf.length)) > 0) {
+                svros.write(bbuf, 0, n);
+            }
+
+            svros.flush();
+            svros.close();
+            dtfFileInputStream.close();
+        }
+        int responseCode = connection.getResponseCode();
+                    logger.info("RESPONSE MESSAGE: "+ connection.getResponseMessage());
+
+        String responseMessage = connection.getResponseMessage();
+        if (responseCode == 200) {
+            //   logger.info(responseMessage);
+            logger.info("DTF is sent successfully");
+            return true;
+        } else {
+            if (responseCode == 401) {
+                 // uploadDTF(path, properties);
+                
+            }
+        }
+        return false;
+    }
+
+    private static void sendDTF(String site, String subjectid, String visit) throws MalformedURLException, IOException {
+
+        Arguments args = Arguments.getInstance();
+
+        StringBuffer urlbuffer = new StringBuffer(args.getProtocol());
+        urlbuffer.append(args.getServerip() + ":" + args.getServerport());
+        urlbuffer.append("/alfresco/service/mis/autoimport-dtf");
+        urlbuffer.append("?alf_ticket="
+                + getIcpTicket(args));
+
+        urlbuffer.append("&site="
+                + URLEncoder.encode(site, "UTF-8"));
+        urlbuffer.append("&subjectid="
+                + URLEncoder.encode(subjectid, "UTF-8"));
+        urlbuffer.append("&visit="
+                + URLEncoder.encode(visit, "UTF-8"));
+
+        URL serverAddress = new URL(urlbuffer.toString());
+        HttpURLConnection connection = (HttpURLConnection) serverAddress.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setDoOutput(true);
+        connection.setDoInput(true);
+        connection.setReadTimeout(100000);
+
+        int responseCode = connection.getResponseCode();
+        String responseMessage = connection.getResponseMessage();
+
+        if (responseCode == 200) {
+            System.out.println("Response Code: " + responseCode
+                    + " Response Message: " + responseMessage + " for sending " + urlbuffer);
+
+        } else {
+            System.out.println("Response Code: " + responseCode
+                    + " Response Message: " + responseMessage + " for sending " + urlbuffer);
+            if (responseCode == 404) {
+                // Display Option dialog box so that the user can abort or
+                // continue;
+            }
+
+            if (responseCode == 401) {
+                //statusbar.setProgress(--progress);
+                sendDTF(site, subjectid, visit);
+            }
+
+            if (responseCode == 500) {
+                System.out.println("failed to import");
+            }
+
+        }
+    }
+
+    private static void sendDTFForBatch(List<DTFEntry> dtfEntries) {
+        dtfEntries.forEach(dtfentry -> {
+            try {
+               // sendDTF(dtfentry.getSite(), dtfentry.getSubject(), dtfentry.getVisit());
+                if(Arguments.getInstance().isSenddtf()){
+                   getVisitDetails(dtfentry.getSite(), dtfentry.getSubject(), dtfentry.getVisit());
+                }
+            } 
+//catch (IOException ex) {
+//                ex.printStackTrace();
+//                System.err.println("Unable to send dtf for " + dtfentry.getSubject() + ":" + dtfentry.getVisit());
+//            } 
+            catch (SQLException ex) {
+                Logger.getLogger(SendDicom.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
+    }
+
+    private static List<DTFEntry> fetchDTFEntries() {
+
+        String dtfentries_query = "select distinct m.clinicaltrialsiteid, m.clinicaltrialsubjectid, m.clinicaltrialtimepointdescription from manifest m join (" + RESULTQUERY + ") result on m.studyinstanceuid=result.studyinstanceuid and m.seriesinstanceuid=result.seriesinstanceuid";
+
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        List<DTFEntry> entries = new ArrayList<DTFEntry>();
+        try {
+            // Step 1 - Load driver
+            // Class.forName("org.postgresql.Driver"); // Class.forName() is not needed since JDBC 4.0
+
+            // Step 2 - Open connection
+            conn = DriverManager.getConnection(jdbcUrl, username, password);
+
+            // Step 3 - Execute statement
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(dtfentries_query);
+
+            while (rs.next()) {
+                String site = rs.getString(1);
+                String subject = rs.getString(2);
+                String visit = rs.getString(3);
+                entries.add(new DTFEntry(site, subject, visit));
+                //sendDTF(site, subject, visit);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) {
+
+                    rs.close();
+
+                }
+
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(SendDicom.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return entries;
+    }
+}
+
+class DTFEntry {
+
+    private String site;
+    private String subject;
+    private String visit;
+
+    public DTFEntry(String site, String subject, String visit) {
+        this.site = site;
+        this.subject = subject;
+        this.visit = visit;
+    }
+
+    /**
+     * @return the site
+     */
+    public String getSite() {
+        return site;
+    }
+
+    /**
+     * @param site the site to set
+     */
+    public void setSite(String site) {
+        this.site = site;
+    }
+
+    /**
+     * @return the subject
+     */
+    public String getSubject() {
+        return subject;
+    }
+
+    /**
+     * @param subject the subject to set
+     */
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    /**
+     * @return the visit
+     */
+    public String getVisit() {
+        return visit;
+    }
+
+    /**
+     * @param visit the visit to set
+     */
+    public void setVisit(String visit) {
+        this.visit = visit;
+    }
+}
+
+class CTEPHEntry {
+
+    private String path;
+    private String size;
+    private Properties properties = new Properties();
+
+    public CTEPHEntry() {
+        properties.put("CLINICALTRIALTIMEPOINTID", "Screening");
+        properties.put("CLINICALTRIALTIMEPOINTDESCRIPTION", "Screening");
+        properties.put("CLINICALTRIALPROTOCOLNAME", "CTEPH");
+        properties.put("CLINICALTRIALPROTOCOLID", "CTEPH");
+        properties.put("CLINICALTRIALSITEID", "1001");
+        properties.put("CLINICALTRIALSITENAME", "1001");
+        properties.put("MODALITY", "CT");
+        properties.put("CLINICALTRIALSUBJECTID", "10010001");
+
+    }
+
+    /**
+     * @return the path
+     */
+    public String getPath() {
+        return path;
+    }
+
+    /**
+     * @param path the path to set
+     */
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    /**
+     * @return the size
+     */
+    public String getSize() {
+        return size;
+    }
+
+    /**
+     * @param size the size to set
+     */
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    /**
+     * @return the properties
+     */
+    public Properties getProperties() {
+        return properties;
+    }
+
+    /**
+     * @param properties the properties to set
+     */
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+    }
+}
