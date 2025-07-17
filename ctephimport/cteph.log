@@ -1,0 +1,154 @@
+2019-08-21 18:31:38 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.imageio.plugins.jpeg.JPEGImageReader
+2019-08-21 18:31:38 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+2019-08-21 18:31:38 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+2019-08-21 18:31:38 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+2019-08-21 18:31:38 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+2019-08-21 18:31:38 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+2019-08-21 18:31:38 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2019-08-21 18:31:38 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2019-08-21 18:31:38 DEBUG ImageReaderFactory:301 - Using Image Reader class org.dcm4che3.imageio.plugins.rle.RLEImageReader
+2019-08-21 18:31:38 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.imageio.plugins.gif.GIFImageReader
+2019-08-21 18:31:38 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2019-08-21 18:31:38 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.imageio.plugins.jpeg.JPEGImageReader
+2019-08-21 18:31:38 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.png.CLibPNGImageReader
+2019-08-21 18:31:38 DEBUG ImageReaderFactory:217 - Image Readers:
+ 1.2.840.10008.1.2.4.50 (JPEG Baseline (Process 1)): com.sun.imageio.plugins.jpeg.JPEGImageReader
+ 1.2.840.10008.1.2.4.51 (JPEG Extended (Process 2 & 4)): com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+ 1.2.840.10008.1.2.4.57 (JPEG Lossless, Non-Hierarchical (Process 14)): com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+ 1.2.840.10008.1.2.4.70 (JPEG Lossless, Non-Hierarchical, First-Order Prediction (Process 14 [Selection Value 1])): com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+ 1.2.840.10008.1.2.4.80 (JPEG-LS Lossless Image Compression): com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+ 1.2.840.10008.1.2.4.81 (JPEG-LS Lossy (Near-Lossless) Image Compression): com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+ 1.2.840.10008.1.2.4.90 (JPEG 2000 Image Compression (Lossless Only)): com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+ 1.2.840.10008.1.2.4.91 (JPEG 2000 Image Compression): com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+ 1.2.840.10008.1.2.5 (RLE Lossless): org.dcm4che3.imageio.plugins.rle.RLEImageReader
+ image/gif: com.sun.imageio.plugins.gif.GIFImageReader
+ image/jp2: com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+ image/jpeg: com.sun.imageio.plugins.jpeg.JPEGImageReader
+ image/png: com.sun.media.imageioimpl.plugins.png.CLibPNGImageReader
+
+2019-08-21 18:31:38 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2019-08-21 18:31:38 DEBUG Decompressor:116 - Decompressor: com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2019-08-21 18:31:38 DEBUG Decompressor:214 - Decompressed frame #1 1:4.2512364 in 142 ms
+2020-10-20 17:46:12 DEBUG SendDicom:1102 -  time taken for all entries :0files in 0sec 
+2020-10-20 17:53:50 DEBUG SendDicom:1016 - StdUID:1.3.12.2.1107.5.2.18.41439.30000018101504324029500000013 -- Start time:1603196630609 -- Files:50
+2020-10-20 17:53:50 DEBUG SendDicom:265 - URL is :: https://bayer.corelabinabox.com/alfresco/service/api/login?lang=en-us&pw=User@123&u=rsvuser
+2020-10-20 17:53:52 DEBUG SendDicom:279 - ResponseCode :: 200ResponseMesg :: OK
+2020-10-20 17:53:52 DEBUG SendDicom:507 - 6_2780_1.2.276.0.28.3.75489453749759.42.6316.20181205073715006.dcm       =================================================
+2020-10-20 17:53:52 DEBUG SendDicom:518 - TRANSFERSYNTAXUID=null
+2020-10-20 17:53:52 DEBUG SendDicom:529 - /home/chaitu/Downloads/2_Treatment_02/UNKNOWN/1.2.276.0.28.3.75489453749759.42.6316.20181205073715006.dcm===/tmp/outconvertedfile3746670431957290861.dcm
+2020-10-20 17:53:52 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+2020-10-20 17:53:52 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+2020-10-20 17:53:52 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+2020-10-20 17:53:52 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+2020-10-20 17:53:52 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+2020-10-20 17:53:52 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+2020-10-20 17:53:52 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:53:52 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:53:52 DEBUG ImageReaderFactory:301 - Using Image Reader class org.dcm4che3.imageio.plugins.rle.RLEImageReader
+2020-10-20 17:53:52 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.imageio.plugins.gif.GIFImageReader
+2020-10-20 17:53:52 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:53:52 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+2020-10-20 17:53:52 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.png.CLibPNGImageReader
+2020-10-20 17:53:52 DEBUG ImageReaderFactory:217 - Image Readers:
+ 1.2.840.10008.1.2.4.50 (JPEG Baseline (Process 1)): com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+ 1.2.840.10008.1.2.4.51 (JPEG Extended (Process 2 & 4)): com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+ 1.2.840.10008.1.2.4.57 (JPEG Lossless, Non-Hierarchical (Process 14)): com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+ 1.2.840.10008.1.2.4.70 (JPEG Lossless, Non-Hierarchical, First-Order Prediction (Process 14 [Selection Value 1])): com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+ 1.2.840.10008.1.2.4.80 (JPEG-LS Lossless Image Compression): com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+ 1.2.840.10008.1.2.4.81 (JPEG-LS Lossy (Near-Lossless) Image Compression): com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+ 1.2.840.10008.1.2.4.90 (JPEG 2000 Image Compression (Lossless Only)): com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+ 1.2.840.10008.1.2.4.91 (JPEG 2000 Image Compression): com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+ 1.2.840.10008.1.2.5 (RLE Lossless): org.dcm4che3.imageio.plugins.rle.RLEImageReader
+ image/gif: com.sun.imageio.plugins.gif.GIFImageReader
+ image/jp2: com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+ image/jpeg: com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageReader
+ image/png: com.sun.media.imageioimpl.plugins.png.CLibPNGImageReader
+
+2020-10-20 17:53:52 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:53:52 DEBUG Decompressor:116 - Decompressor: com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:53:52 DEBUG Decompressor:214 - Decompressed frame #1 1:3.465313 in 65 ms
+2020-10-20 17:53:52 DEBUG SendDicom:550 - https://bayer.corelabinabox.com:/alfresco/misFileUpload?ticket=TICKET_b0f37b187a788f6b66b75e66c4f403569d3d2845&AET=Bayer_17833_Chronos4&AETID=workspace%3A%2F%2FSpacesStore%2Fd6b032ea-3807-4a6a-b40c-0553a0eae5cb&parent=Bayer&FILENAME=6_2780_1.2.276.0.28.3.75489453749759.42.6316.20181205073715006.dcm&LOGFILENAME=test.log&TOTALFILES=1
+2020-10-20 17:53:52 DEBUG SendDicom:833 - modify dcm :tempdcmFile922101865840528764.dcm
+2020-10-20 17:53:55 DEBUG SendDicom:654 - Response Code: 200 Response Message: OK for sending 6_2780_1.2.276.0.28.3.75489453749759.42.6316.20181205073715006.dcm
+2020-10-20 17:53:55 DEBUG SendDicom:265 - URL is :: https://bayer.corelabinabox.com/alfresco/service/api/login?lang=en-us&pw=User@123&u=rsvuser
+2020-10-20 17:53:56 DEBUG SendDicom:279 - ResponseCode :: 200ResponseMesg :: OK
+2020-10-20 17:53:56 DEBUG SendDicom:507 - 6_2780_1.2.276.0.28.3.75489453749759.42.6316.20181205073715019.dcm       =================================================
+2020-10-20 17:53:56 DEBUG SendDicom:518 - TRANSFERSYNTAXUID=null
+2020-10-20 17:53:56 DEBUG SendDicom:529 - /home/chaitu/Downloads/2_Treatment_02/UNKNOWN/1.2.276.0.28.3.75489453749759.42.6316.20181205073715019.dcm===/tmp/outconvertedfile1760141280432996452.dcm
+2020-10-20 17:53:56 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:53:56 DEBUG Decompressor:116 - Decompressor: com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:53:56 DEBUG Decompressor:214 - Decompressed frame #1 1:3.3854737 in 15 ms
+2020-10-20 17:53:56 DEBUG SendDicom:550 - https://bayer.corelabinabox.com:/alfresco/misFileUpload?ticket=TICKET_4cfaaaa75c030e6cc912baad83b8a87be044afbf&AET=Bayer_17833_Chronos4&AETID=workspace%3A%2F%2FSpacesStore%2Fd6b032ea-3807-4a6a-b40c-0553a0eae5cb&parent=Bayer&FILENAME=6_2780_1.2.276.0.28.3.75489453749759.42.6316.20181205073715019.dcm&LOGFILENAME=test.log&TOTALFILES=1
+2020-10-20 17:53:56 DEBUG SendDicom:833 - modify dcm :tempdcmFile812295964865974092.dcm
+2020-10-20 17:53:58 DEBUG SendDicom:654 - Response Code: 200 Response Message: OK for sending 6_2780_1.2.276.0.28.3.75489453749759.42.6316.20181205073715019.dcm
+2020-10-20 17:53:58 DEBUG SendDicom:265 - URL is :: https://bayer.corelabinabox.com/alfresco/service/api/login?lang=en-us&pw=User@123&u=rsvuser
+2020-10-20 17:53:59 DEBUG SendDicom:279 - ResponseCode :: 200ResponseMesg :: OK
+2020-10-20 17:53:59 DEBUG SendDicom:507 - 6_2781_1.2.276.0.28.3.75489453749759.42.6316.20181205073715009.dcm       =================================================
+2020-10-20 17:53:59 DEBUG SendDicom:518 - TRANSFERSYNTAXUID=null
+2020-10-20 17:53:59 DEBUG SendDicom:529 - /home/chaitu/Downloads/2_Treatment_02/UNKNOWN/1.2.276.0.28.3.75489453749759.42.6316.20181205073715009.dcm===/tmp/outconvertedfile4373438189998888594.dcm
+2020-10-20 17:53:59 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:53:59 DEBUG Decompressor:116 - Decompressor: com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:53:59 DEBUG Decompressor:214 - Decompressed frame #1 1:3.3566031 in 14 ms
+2020-10-20 17:53:59 DEBUG SendDicom:550 - https://bayer.corelabinabox.com:/alfresco/misFileUpload?ticket=TICKET_eb45558268a678708aa2151c90ee3c528ee93acf&AET=Bayer_17833_Chronos4&AETID=workspace%3A%2F%2FSpacesStore%2Fd6b032ea-3807-4a6a-b40c-0553a0eae5cb&parent=Bayer&FILENAME=6_2781_1.2.276.0.28.3.75489453749759.42.6316.20181205073715009.dcm&LOGFILENAME=test.log&TOTALFILES=1
+2020-10-20 17:53:59 DEBUG SendDicom:833 - modify dcm :tempdcmFile5013937456770353214.dcm
+2020-10-20 17:54:01 DEBUG SendDicom:654 - Response Code: 200 Response Message: OK for sending 6_2781_1.2.276.0.28.3.75489453749759.42.6316.20181205073715009.dcm
+2020-10-20 17:54:01 DEBUG SendDicom:265 - URL is :: https://bayer.corelabinabox.com/alfresco/service/api/login?lang=en-us&pw=User@123&u=rsvuser
+2020-10-20 17:54:02 DEBUG SendDicom:279 - ResponseCode :: 200ResponseMesg :: OK
+2020-10-20 17:54:02 DEBUG SendDicom:507 - 6_2781_1.2.276.0.28.3.75489453749759.42.6316.20181205073714003.dcm       =================================================
+2020-10-20 17:54:02 DEBUG SendDicom:518 - TRANSFERSYNTAXUID=null
+2020-10-20 17:54:02 DEBUG SendDicom:529 - /home/chaitu/Downloads/2_Treatment_02/UNKNOWN/1.2.276.0.28.3.75489453749759.42.6316.20181205073714003.dcm===/tmp/outconvertedfile6376435170385929605.dcm
+2020-10-20 17:54:02 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:54:02 DEBUG Decompressor:116 - Decompressor: com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:54:02 DEBUG Decompressor:214 - Decompressed frame #1 1:3.364703 in 15 ms
+2020-10-20 17:54:02 DEBUG SendDicom:550 - https://bayer.corelabinabox.com:/alfresco/misFileUpload?ticket=TICKET_4d242b72fc507dc0d0199336db4548fff3533608&AET=Bayer_17833_Chronos4&AETID=workspace%3A%2F%2FSpacesStore%2Fd6b032ea-3807-4a6a-b40c-0553a0eae5cb&parent=Bayer&FILENAME=6_2781_1.2.276.0.28.3.75489453749759.42.6316.20181205073714003.dcm&LOGFILENAME=test.log&TOTALFILES=1
+2020-10-20 17:54:02 DEBUG SendDicom:833 - modify dcm :tempdcmFile705021407534590757.dcm
+2020-10-20 17:54:04 DEBUG SendDicom:654 - Response Code: 200 Response Message: OK for sending 6_2781_1.2.276.0.28.3.75489453749759.42.6316.20181205073714003.dcm
+2020-10-20 17:54:04 DEBUG SendDicom:265 - URL is :: https://bayer.corelabinabox.com/alfresco/service/api/login?lang=en-us&pw=User@123&u=rsvuser
+2020-10-20 17:54:05 DEBUG SendDicom:279 - ResponseCode :: 200ResponseMesg :: OK
+2020-10-20 17:54:05 DEBUG SendDicom:507 - 6_2781_1.2.276.0.28.3.75489453749759.42.6316.20181205073716005.dcm       =================================================
+2020-10-20 17:54:05 DEBUG SendDicom:518 - TRANSFERSYNTAXUID=null
+2020-10-20 17:54:05 DEBUG SendDicom:529 - /home/chaitu/Downloads/2_Treatment_02/UNKNOWN/1.2.276.0.28.3.75489453749759.42.6316.20181205073716005.dcm===/tmp/outconvertedfile7337940837552532924.dcm
+2020-10-20 17:54:05 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:54:05 DEBUG Decompressor:116 - Decompressor: com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:54:05 DEBUG Decompressor:214 - Decompressed frame #1 1:3.2586331 in 16 ms
+2020-10-20 17:54:05 DEBUG SendDicom:550 - https://bayer.corelabinabox.com:/alfresco/misFileUpload?ticket=TICKET_23e0f8ed644e637a3753075bf2b072e4828471f3&AET=Bayer_17833_Chronos4&AETID=workspace%3A%2F%2FSpacesStore%2Fd6b032ea-3807-4a6a-b40c-0553a0eae5cb&parent=Bayer&FILENAME=6_2781_1.2.276.0.28.3.75489453749759.42.6316.20181205073716005.dcm&LOGFILENAME=test.log&TOTALFILES=1
+2020-10-20 17:54:05 DEBUG SendDicom:833 - modify dcm :tempdcmFile9005312181197369024.dcm
+2020-10-20 17:54:07 DEBUG SendDicom:654 - Response Code: 200 Response Message: OK for sending 6_2781_1.2.276.0.28.3.75489453749759.42.6316.20181205073716005.dcm
+2020-10-20 17:54:07 DEBUG SendDicom:265 - URL is :: https://bayer.corelabinabox.com/alfresco/service/api/login?lang=en-us&pw=User@123&u=rsvuser
+2020-10-20 17:54:08 DEBUG SendDicom:279 - ResponseCode :: 200ResponseMesg :: OK
+2020-10-20 17:54:08 DEBUG SendDicom:507 - 6_2782_1.2.276.0.28.3.75489453749759.42.6316.20181205073715015.dcm       =================================================
+2020-10-20 17:54:08 DEBUG SendDicom:518 - TRANSFERSYNTAXUID=null
+2020-10-20 17:54:08 DEBUG SendDicom:529 - /home/chaitu/Downloads/2_Treatment_02/UNKNOWN/1.2.276.0.28.3.75489453749759.42.6316.20181205073715015.dcm===/tmp/outconvertedfile798743008057010763.dcm
+2020-10-20 17:54:08 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:54:08 DEBUG Decompressor:116 - Decompressor: com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:54:08 DEBUG Decompressor:214 - Decompressed frame #1 1:3.264314 in 15 ms
+2020-10-20 17:54:08 DEBUG SendDicom:550 - https://bayer.corelabinabox.com:/alfresco/misFileUpload?ticket=TICKET_c3ab56829d859876a2fb9cfa54dbbccb3734d594&AET=Bayer_17833_Chronos4&AETID=workspace%3A%2F%2FSpacesStore%2Fd6b032ea-3807-4a6a-b40c-0553a0eae5cb&parent=Bayer&FILENAME=6_2782_1.2.276.0.28.3.75489453749759.42.6316.20181205073715015.dcm&LOGFILENAME=test.log&TOTALFILES=1
+2020-10-20 17:54:08 DEBUG SendDicom:833 - modify dcm :tempdcmFile6578102841707750989.dcm
+2020-10-20 17:54:10 DEBUG SendDicom:654 - Response Code: 200 Response Message: OK for sending 6_2782_1.2.276.0.28.3.75489453749759.42.6316.20181205073715015.dcm
+2020-10-20 17:54:10 DEBUG SendDicom:265 - URL is :: https://bayer.corelabinabox.com/alfresco/service/api/login?lang=en-us&pw=User@123&u=rsvuser
+2020-10-20 17:54:11 DEBUG SendDicom:279 - ResponseCode :: 200ResponseMesg :: OK
+2020-10-20 17:54:11 DEBUG SendDicom:507 - 6_2781_1.2.276.0.28.3.75489453749759.42.6316.20181205073716003.dcm       =================================================
+2020-10-20 17:54:11 DEBUG SendDicom:518 - TRANSFERSYNTAXUID=null
+2020-10-20 17:54:11 DEBUG SendDicom:529 - /home/chaitu/Downloads/2_Treatment_02/UNKNOWN/1.2.276.0.28.3.75489453749759.42.6316.20181205073716003.dcm===/tmp/outconvertedfile4614151512861116122.dcm
+2020-10-20 17:54:11 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:54:11 DEBUG Decompressor:116 - Decompressor: com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:54:11 DEBUG Decompressor:214 - Decompressed frame #1 1:3.5131469 in 14 ms
+2020-10-20 17:54:11 DEBUG SendDicom:550 - https://bayer.corelabinabox.com:/alfresco/misFileUpload?ticket=TICKET_21ce5541999bd06d15fd161cbc2f53d859fba70b&AET=Bayer_17833_Chronos4&AETID=workspace%3A%2F%2FSpacesStore%2Fd6b032ea-3807-4a6a-b40c-0553a0eae5cb&parent=Bayer&FILENAME=6_2781_1.2.276.0.28.3.75489453749759.42.6316.20181205073716003.dcm&LOGFILENAME=test.log&TOTALFILES=1
+2020-10-20 17:54:11 DEBUG SendDicom:833 - modify dcm :tempdcmFile3527238657323754767.dcm
+2020-10-20 17:54:13 DEBUG SendDicom:654 - Response Code: 200 Response Message: OK for sending 6_2781_1.2.276.0.28.3.75489453749759.42.6316.20181205073716003.dcm
+2020-10-20 17:54:13 DEBUG SendDicom:265 - URL is :: https://bayer.corelabinabox.com/alfresco/service/api/login?lang=en-us&pw=User@123&u=rsvuser
+2020-10-20 17:54:14 DEBUG SendDicom:279 - ResponseCode :: 200ResponseMesg :: OK
+2020-10-20 17:54:14 DEBUG SendDicom:507 - 6_2781_1.2.276.0.28.3.75489453749759.42.6316.20181205073716014.dcm       =================================================
+2020-10-20 17:54:14 DEBUG SendDicom:518 - TRANSFERSYNTAXUID=null
+2020-10-20 17:54:14 DEBUG SendDicom:529 - /home/chaitu/Downloads/2_Treatment_02/UNKNOWN/1.2.276.0.28.3.75489453749759.42.6316.20181205073716014.dcm===/tmp/outconvertedfile5470832612861177798.dcm
+2020-10-20 17:54:14 DEBUG ImageReaderFactory:301 - Using Image Reader class com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:54:14 DEBUG Decompressor:116 - Decompressor: com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderCodecLib
+2020-10-20 17:54:14 DEBUG Decompressor:214 - Decompressed frame #1 1:3.4522612 in 14 ms
+2020-10-20 17:54:14 DEBUG SendDicom:550 - https://bayer.corelabinabox.com:/alfresco/misFileUpload?ticket=TICKET_c1145987b17baec86d80a4fb124eb99687e9e9c9&AET=Bayer_17833_Chronos4&AETID=workspace%3A%2F%2FSpacesStore%2Fd6b032ea-3807-4a6a-b40c-0553a0eae5cb&parent=Bayer&FILENAME=6_2781_1.2.276.0.28.3.75489453749759.42.6316.20181205073716014.dcm&LOGFILENAME=test.log&TOTALFILES=1
+2020-10-20 17:54:14 DEBUG SendDicom:833 - modify dcm :tempdcmFile4321790793981383847.dcm
+2020-10-20 17:54:16 DEBUG SendDicom:654 - Response Code: 200 Response Message: OK for sending 6_2781_1.2.276.0.28.3.75489453749759.42.6316.20181205073716014.dcm
+2020-10-20 17:54:16 DEBUG SendDicom:265 - URL is :: https://bayer.corelabinabox.com/alfresco/service/api/login?lang=en-us&pw=User@123&u=rsvuser
+2024-06-12 10:54:08 DEBUG SendDicom:1110 -  time taken for all entries :0files in 0sec 
+2024-06-12 10:55:34 DEBUG SendDicom:1110 -  time taken for all entries :0files in 0sec 
+2024-06-12 10:56:20 DEBUG SendDicom:1110 -  time taken for all entries :0files in 0sec 
+2024-06-12 10:58:02 DEBUG SendDicom:1110 -  time taken for all entries :0files in 0sec 
